@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Leveling System</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom Styles */
+        body {
+            /* Apply Montserrat font */
+            font-family: 'Montserrat', sans-serif;
+            background-color: #0a0a0f; /* Very dark blue/black */
+            color: #e0e0ff; /* Light blue/lavender text */
+            overscroll-behavior: none; /* Prevent pull-to-refresh */
+        }
+
+        /* Custom Solo Leveling Colors */
+        .sl-blue { color: #00aaff; }
+        .sl-gold { color: #ffd700; }
+        .bg-sl-dark { background-color: #1a1a2e; } /* Darker element background */
+        .bg-sl-darker { background-color: #10101e; } /* Even darker */
+        .border-sl-blue { border-color: #0055aa; }
+        .shadow-sl-blue { box-shadow: 0 0 15px rgba(0, 170, 255, 0.5); }
+        .shadow-sl-gold { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+
+        /* Progress Bar Styling */
+        progress {
+            appearance: none; /* Remove default styling */
+            width: 100%;
+            height: 1rem; /* Or adjust as needed */
+            border-radius: 9999px; /* Fully rounded */
+            overflow: hidden; /* Ensure inner bar respects border radius */
+            border: 1px solid #0055aa; /* Blue border */
+            background-color: #10101e; /* Dark background for the track */
+        }
+
+        /* Webkit (Chrome, Safari) */
+        progress::-webkit-progress-bar {
+            background-color: #10101e;
+            border-radius: 9999px;
+        }
+
+        progress::-webkit-progress-value {
+            background: linear-gradient(90deg, #0055aa, #00aaff); /* Blue gradient */
+            border-radius: 9999px;
+            transition: width 0.3s ease-in-out; /* Smooth animation */
+        }
+
+        /* Firefox */
+        progress::-moz-progress-bar {
+            background: linear-gradient(90deg, #0055aa, #00aaff); /* Blue gradient */
+            border-radius: 9999px;
+            transition: width 0.3s ease-in-out; /* Smooth animation */
+        }
+
+        /* Input Styling */
+        input[type="text"], input[type="number"], textarea, select { /* Added select */
+            background-color: #10101e;
+            border: 1px solid #0055aa;
+            color: #e0e0ff;
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus { /* Added select */
+            outline: none;
+            border-color: #00aaff;
+            box-shadow: 0 0 5px rgba(0, 170, 255, 0.5);
+        }
+         /* Style select dropdown arrow */
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2300aaff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+
+        /* Button Styling */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+        .btn-blue {
+            background-color: #0077cc;
+            color: #ffffff;
+            border-color: #0055aa;
+        }
+        .btn-blue:hover {
+            background-color: #00aaff;
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+        }
+        .btn-gold {
+            background-color: #ccac00;
+            color: #10101e;
+            border-color: #a38a00;
+        }
+        .btn-gold:hover {
+            background-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+         .btn-red {
+            background-color: #cc3333;
+            color: #ffffff;
+            border-color: #aa2222;
+        }
+        .btn-red:hover {
+            background-color: #ff4444;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+        }
+        .btn-complete {
+             background-color: #228B22; /* Forest Green */
+             color: #ffffff;
+             border-color: #1A681A;
+        }
+        .btn-complete:hover {
+             background-color: #32CD32; /* Lime Green */
+             box-shadow: 0 0 10px rgba(50, 205, 50, 0.5);
+        }
+
+        /* Subtle Animation for sections */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Quest Item Styling */
+        .quest-item {
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .quest-item:hover {
+            background-color: #2a2a3e;
+            transform: translateX(5px);
+        }
+        .quest-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+            background-color: #1f1f2f;
+        }
+        .quest-item.completed:hover {
+             transform: translateX(0px); /* Disable hover transform when completed */
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            animation: fadeInModal 0.3s ease-out;
+        }
+        .modal-content {
+            background-color: #1a1a2e;
+            margin: 10% auto;
+            padding: 2rem;
+            border: 1px solid #0055aa;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
+            animation: slideInModal 0.3s ease-out;
+        }
+         @keyframes fadeInModal {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideInModal {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1; /* Ensure close button aligns well */
+        }
+        .modal-close:hover,
+        .modal-close:focus {
+            color: #00aaff;
+            text-decoration: none;
+        }
+
+        /* Rank Badge */
+        .rank-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 1.5rem; /* lg */
+            font-weight: 700; /* bold */
+            text-align: center;
+            min-width: 60px;
+            border: 2px solid;
+            transition: all 0.3s ease;
+        }
+        .rank-E { background-color: #6b7280; border-color: #4b5563; color: #e5e7eb; } /* Gray */
+        .rank-D { background-color: #10b981; border-color: #059669; color: #ffffff; } /* Emerald */
+        .rank-C { background-color: #3b82f6; border-color: #2563eb; color: #ffffff; } /* Blue */
+        .rank-B { background-color: #a855f7; border-color: #9333ea; color: #ffffff; } /* Purple */
+        .rank-A { background-color: #ef4444; border-color: #dc2626; color: #ffffff; } /* Red */
+        .rank-S { background-color: #f59e0b; border-color: #d97706; color: #1f2937; } /* Amber/Gold */
+        .rank-S.shadow-sl-gold { box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); }
+
+        /* Lucide Icon Styling */
+        i[data-lucide] {
+            width: 1em;
+            height: 1em;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.25em; /* Add some space after icon */
+            flex-shrink: 0; /* Prevent icons from shrinking in flex containers */
+        }
+        /* Adjust icon size within small buttons */
+        .btn-sm i[data-lucide] {
+             width: 0.9em;
+             height: 0.9em;
+             margin-right: 0; /* Remove margin in small buttons */
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+    <div class="container mx-auto max-w-4xl">
+
+        <header class="mb-6 md:mb-8 text-center fade-in" style="animation-delay: 0.1s;">
+            <h1 class="text-3xl md:text-4xl font-bold sl-blue mb-2">Personal Leveling System</h1>
+            <p class="text-sm md:text-base text-gray-400">Track your progress. Upgrade your life.</p>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+
+            <section class="bg-sl-dark p-4 md:p-6 rounded-lg border border-sl-blue shadow-sl-blue fade-in" style="animation-delay: 0.2s;">
+                <h2 class="text-xl md:text-2xl font-semibold sl-blue mb-4 flex items-center">
+                    <i data-lucide="user-round"></i>Status
+                </h2>
+
+                <div class="mb-4 flex items-center justify-between">
+                    <span class="text-lg">Rank:</span>
+                    <span id="rank-display" class="rank-badge rank-E">E</span>
+                </div>
+
+                <div class="mb-4 flex items-center justify-between">
+                    <span class="text-lg">Level:</span>
+                    <span id="level-display" class="text-lg sl-gold font-bold">1</span>
+                </div>
+
+                <div class="mb-2">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>XP: <span id="current-xp">0</span> / <span id="xp-to-next-level">100</span></span>
+                        <span id="xp-percentage">0%</span>
+                    </div>
+                    <progress id="xp-progress-bar" value="0" max="100"></progress>
+                </div>
+
+                 <div class="mt-5 flex items-center justify-between text-sm text-gray-400">
+                    <span><i data-lucide="flame"></i>Consistency Streak:</span>
+                    <span id="streak-counter" class="font-semibold sl-gold">0 days</span>
+                </div>
+
+                <div class="mt-6 border-t border-sl-blue pt-4">
+                    <h3 class="text-lg font-medium sl-blue mb-2 flex items-center"><i data-lucide="plus-circle"></i>Log Activity / Add XP</h3>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="number" id="xp-input" placeholder="Enter XP earned" class="flex-grow p-2 text-sm" min="0">
+                        <button id="add-xp-button" class="btn btn-blue text-sm">
+                            <i data-lucide="check-check"></i>Add XP
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Log completed tasks to gain XP.</p>
+                </div>
+            </section>
+
+            <section class="bg-sl-dark p-4 md:p-6 rounded-lg border border-sl-blue shadow-sl-blue fade-in" style="animation-delay: 0.3s;">
+                <h2 class="text-xl md:text-2xl font-semibold sl-blue mb-4 flex items-center">
+                    <i data-lucide="clipboard-list"></i>Quests
+                </h2>
+
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium sl-gold mb-3 flex items-center"><i data-lucide="sun"></i>Daily Quests</h3>
+                    <ul id="daily-quest-list" class="space-y-2 mb-3 max-h-60 overflow-y-auto pr-2"> <li class="text-gray-500 italic">No daily quests added yet.</li>
+                    </ul>
+                    <div class="flex flex-col sm:flex-row gap-2 mt-3">
+                        <input type="text" id="new-daily-quest" placeholder="New daily quest..." class="flex-grow p-2 text-sm">
+                        <button id="add-daily-quest-button" class="btn btn-blue text-sm">
+                            <i data-lucide="plus"></i>Add Daily
+                        </button>
+                    </div>
+                     <button id="reset-daily-quests" class="btn btn-red text-sm mt-3 w-full sm:w-auto">
+                        <i data-lucide="refresh-cw"></i>Reset Dailies
+                    </button>
+                    <p class="text-xs text-gray-500 mt-1">Tasks to complete every day. Reset clears completion status.</p>
+                </div>
+
+                <div class="border-t border-sl-blue pt-4">
+                    <h3 class="text-lg font-medium sl-gold mb-3 flex items-center"><i data-lucide="calendar-days"></i>Weekly Quests</h3>
+                    <ul id="weekly-quest-list" class="space-y-2 mb-3 max-h-60 overflow-y-auto pr-2"> <li class="text-gray-500 italic">No weekly quests added yet.</li>
+                    </ul>
+                    <div class="flex flex-col sm:flex-row gap-2 mt-3">
+                        <input type="text" id="new-weekly-quest" placeholder="New weekly quest..." class="flex-grow p-2 text-sm">
+                        <button id="add-weekly-quest-button" class="btn btn-blue text-sm">
+                            <i data-lucide="plus"></i>Add Weekly
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Larger goals for the week.</p>
+                </div>
+            </section>
+
+        </main>
+
+         <section class="mt-6 md:mt-8 bg-sl-darker p-4 md:p-6 rounded-lg border border-sl-blue fade-in" style="animation-delay: 0.4s;">
+            <h2 class="text-lg md:text-xl font-semibold sl-blue mb-3 flex items-center"><i data-lucide="info"></i>System Guide</h2>
+            <div class="text-sm text-gray-400 space-y-2">
+                <p><strong>Why a System?</strong> Improvement requires structure. Track progress, upgrade skills, and see real-time growth like an EXP bar filling up.</p>
+                <p><strong>Ranks:</strong> Define your own milestones for ranks E through S (e.g., Rank C Fitness = 50 push-ups). The app tracks your level progression towards these ranks.</p>
+                <p><strong>XP:</strong> Assign XP values to tasks (Workout: +10 XP, Read 10 pages: +5 XP). Accumulate XP to level up.</p>
+                <p><strong>Quests:</strong> Set daily and weekly tasks. Completing them drives your progress.</p>
+                <p><strong><i data-lucide="flame" class="inline-block text-orange-500"></i>Grind Mode:</strong> Consistency is key! Try not to break the chain. Completing at least one daily quest increases your streak.</p>
+            </div>
+             <button id="reset-all-data" class="btn btn-red text-sm mt-4">
+                <i data-lucide="trash-2"></i>Reset All Data
+            </button>
+            <p class="text-xs text-gray-500 mt-1">Warning: This will erase all your progress.</p>
+        </section>
+
+    </div>
+
+    <div id="level-up-modal" class="modal">
+        <div class="modal-content text-center">
+            <span class="modal-close" onclick="closeModal('level-up-modal')">&times;</span>
+            <h2 class="text-2xl md:text-3xl font-bold sl-gold mb-4">LEVEL UP!</h2>
+            <p class="text-lg mb-2">You have reached <strong id="new-level-display" class="sl-gold">Level X</strong>!</p>
+            <p id="rank-up-message" class="text-lg mb-4 hidden sl-blue font-semibold"></p> <i data-lucide="party-popper" class="text-5xl sl-gold mx-auto mb-4 block"></i> <button onclick="closeModal('level-up-modal')" class="btn btn-blue">Continue</button>
+        </div>
+    </div>
+
+    <div id="setup-modal" class="modal">
+        <div class="modal-content">
+             <span class="modal-close" onclick="closeModal('setup-modal')">&times;</span> <h2 class="text-xl md:text-2xl font-semibold sl-blue mb-4 text-center">Welcome, Player!</h2>
+            <p class="mb-4 text-center text-gray-300">Let's set up your Personal Leveling System.</p>
+            <div class="space-y-4">
+                <div>
+                    <label for="start-rank" class="block text-sm font-medium mb-1 sl-blue">1. Your Starting Rank:</label>
+                    <select id="start-rank" class="w-full p-2 text-sm"> <option value="E">E (Beginner)</option>
+                        <option value="D">D</option>
+                        <option value="C">C</option>
+                        <option value="B">B</option>
+                        <option value="A">A</option>
+                        <option value="S">S (Master)</option>
+                    </select>
+                     <p class="text-xs text-gray-500 mt-1">Be honest about your current level.</p>
+                </div>
+                <div>
+                    <label for="first-daily-quest" class="block text-sm font-medium mb-1 sl-blue">2. Your First Daily Quest:</label>
+                    <input type="text" id="first-daily-quest" placeholder="e.g., Meditate for 5 minutes" class="w-full p-2 text-sm">
+                     <p class="text-xs text-gray-500 mt-1">Choose a small, achievable task.</p>
+                </div>
+                 <div>
+                    <label for="xp-per-level-input" class="block text-sm font-medium mb-1 sl-blue">3. Base XP Per Level:</label>
+                    <input type="number" id="xp-per-level-input" value="100" min="10" class="w-full p-2 text-sm">
+                     <p class="text-xs text-gray-500 mt-1">XP needed for level 2. It will increase for higher levels.</p>
+                </div>
+            </div>
+            <button id="start-system-button" class="btn btn-gold w-full mt-6">Begin Your Arc!</button>
+        </div>
+    </div>
+
+
+    <script>
+        // --- DOM Elements ---
+        const rankDisplay = document.getElementById('rank-display');
+        const levelDisplay = document.getElementById('level-display');
+        const currentXpDisplay = document.getElementById('current-xp');
+        const xpToNextLevelDisplay = document.getElementById('xp-to-next-level');
+        const xpPercentageDisplay = document.getElementById('xp-percentage');
+        const xpProgressBar = document.getElementById('xp-progress-bar');
+        const xpInput = document.getElementById('xp-input');
+        const addXpButton = document.getElementById('add-xp-button');
+        const streakCounterDisplay = document.getElementById('streak-counter');
+
+        const dailyQuestList = document.getElementById('daily-quest-list');
+        const newDailyQuestInput = document.getElementById('new-daily-quest');
+        const addDailyQuestButton = document.getElementById('add-daily-quest-button');
+        const resetDailyQuestsButton = document.getElementById('reset-daily-quests');
+
+        const weeklyQuestList = document.getElementById('weekly-quest-list');
+        const newWeeklyQuestInput = document.getElementById('new-weekly-quest');
+        const addWeeklyQuestButton = document.getElementById('add-weekly-quest-button');
+
+        const levelUpModal = document.getElementById('level-up-modal');
+        const newLevelDisplay = document.getElementById('new-level-display');
+        const rankUpMessage = document.getElementById('rank-up-message');
+
+        const setupModal = document.getElementById('setup-modal');
+        const startRankSelect = document.getElementById('start-rank');
+        const firstDailyQuestInput = document.getElementById('first-daily-quest');
+        const xpPerLevelInput = document.getElementById('xp-per-level-input');
+        const startSystemButton = document.getElementById('start-system-button');
+        const resetAllDataButton = document.getElementById('reset-all-data');
+
+        // --- Game State ---
+        let state = {
+            rank: 'E',
+            level: 1,
+            currentXp: 0,
+            baseXpPerLevel: 100, // Initial XP needed for level 2
+            xpMultiplier: 1.1, // XP needed increases by 10% each level
+            dailyQuests: [], // { text: string, completed: boolean, id: number }
+            weeklyQuests: [], // { text: string, completed: boolean, id: number }
+            streak: 0,
+            lastQuestCompletionDate: null, // Stores YYYY-MM-DD
+            ranks: ['E', 'D', 'C', 'B', 'A', 'S'],
+            levelsPerRank: 10, // How many levels before ranking up
+            setupComplete: false
+        };
+
+        // --- Initialization ---
+        function init() {
+            loadState();
+            if (!state.setupComplete) {
+                 // Pre-fill setup modal if some data exists but setup wasn't marked complete
+                if(state.rank) startRankSelect.value = state.rank;
+                if(state.baseXpPerLevel) xpPerLevelInput.value = state.baseXpPerLevel;
+                if(state.dailyQuests && state.dailyQuests.length > 0) firstDailyQuestInput.value = state.dailyQuests[0].text;
+
+                openModal('setup-modal');
+            } else {
+                updateUI();
+                renderDailyQuests();
+                renderWeeklyQuests();
+                checkStreakReset(); // Check if streak should be reset on load
+            }
+            addEventListeners();
+            lucide.createIcons(); // Initialize Lucide icons
+        }
+
+        // --- Local Storage ---
+        function saveState() {
+            try {
+                localStorage.setItem('soloLevelingState', JSON.stringify(state));
+                console.log("State saved.");
+            } catch (e) {
+                console.error("Error saving state to localStorage:", e);
+                // Optionally notify user that saving failed
+            }
+        }
+
+        function loadState() {
+            const savedState = localStorage.getItem('soloLevelingState');
+            if (savedState) {
+                try {
+                    const parsedState = JSON.parse(savedState);
+                    // Merge saved state with default state to handle potential new properties
+                    // or missing properties in older saved states.
+                    state = { ...state, ...parsedState };
+                    // Ensure essential arrays/objects exist and have correct types
+                    state.dailyQuests = Array.isArray(state.dailyQuests) ? state.dailyQuests : [];
+                    state.weeklyQuests = Array.isArray(state.weeklyQuests) ? state.weeklyQuests : [];
+                    state.ranks = Array.isArray(state.ranks) && state.ranks.length > 0 ? state.ranks : ['E', 'D', 'C', 'B', 'A', 'S'];
+                    state.level = Number.isInteger(state.level) && state.level > 0 ? state.level : 1;
+                    state.currentXp = Number.isFinite(state.currentXp) && state.currentXp >= 0 ? state.currentXp : 0;
+                    state.baseXpPerLevel = Number.isFinite(state.baseXpPerLevel) && state.baseXpPerLevel > 0 ? state.baseXpPerLevel : 100;
+                    state.xpMultiplier = Number.isFinite(state.xpMultiplier) && state.xpMultiplier > 1 ? state.xpMultiplier : 1.1;
+                    state.levelsPerRank = Number.isInteger(state.levelsPerRank) && state.levelsPerRank > 0 ? state.levelsPerRank : 10;
+                    state.streak = Number.isInteger(state.streak) && state.streak >= 0 ? state.streak : 0;
+                    state.setupComplete = typeof state.setupComplete === 'boolean' ? state.setupComplete : false;
+
+                    console.log("State loaded:", state);
+
+                } catch (e) {
+                    console.error("Error loading or parsing state:", e);
+                    // If loading fails, reset to defaults and force setup
+                    localStorage.removeItem('soloLevelingState'); // Clear corrupted data
+                    state = getInitialState(); // Get fresh default state
+                    state.setupComplete = false; // Ensure setup modal shows
+                }
+            } else {
+                 // No saved state found, use initial defaults
+                 state = getInitialState();
+                 state.setupComplete = false; // Ensure setup modal shows
+                 console.log("No saved state found, using defaults.");
+            }
+        }
+
+        // Function to get a fresh initial state object
+        function getInitialState() {
+            return {
+                rank: 'E',
+                level: 1,
+                currentXp: 0,
+                baseXpPerLevel: 100,
+                xpMultiplier: 1.1,
+                dailyQuests: [],
+                weeklyQuests: [],
+                streak: 0,
+                lastQuestCompletionDate: null,
+                ranks: ['E', 'D', 'C', 'B', 'A', 'S'],
+                levelsPerRank: 10,
+                setupComplete: false
+            };
+        }
+
+
+        function resetAllData() {
+             if (confirm("Are you sure you want to reset ALL data? This cannot be undone.")) {
+                localStorage.removeItem('soloLevelingState');
+                // Reset state object to initial defaults
+                state = getInitialState();
+                // Re-initialize the UI from scratch, forcing setup modal
+                init();
+                console.log("All data reset.");
+            }
+        }
+
+
+        // --- Core Logic ---
+        function getXpForNextLevel() {
+            // XP needed increases exponentially based on level and base XP
+             // Formula: baseXp * (multiplier ^ (level - 1))
+             // Ensure it's always at least a minimum value (e.g., 1)
+             return Math.max(1, Math.floor(state.baseXpPerLevel * Math.pow(state.xpMultiplier, state.level - 1)));
+        }
+
+        function addXp(amount) {
+             // Ensure amount is a positive number
+            amount = parseInt(amount, 10);
+            if (isNaN(amount) || amount <= 0) {
+                console.warn("Invalid XP amount entered.");
+                return;
+            }
+
+            state.currentXp += amount;
+            console.log(`Added ${amount} XP. Current XP: ${state.currentXp}`);
+
+            checkForLevelUp(); // Check for level up *after* adding XP
+            updateUI();
+            saveState();
+        }
+
+        function checkForLevelUp() {
+            let xpNeeded = getXpForNextLevel();
+            let leveledUp = false;
+            let originalRank = state.rank;
+            let rankChanged = false; // Flag to track if rank changed in this check
+
+            // Loop while current XP meets or exceeds the requirement for the *current* level
+            while (state.currentXp >= xpNeeded && state.rank !== 'S') { // Stop leveling if already S rank
+                state.currentXp -= xpNeeded; // Subtract XP needed for the level just passed
+                state.level++;               // Increment level
+                leveledUp = true;
+                console.log(`Level Up! Reached Level ${state.level}. XP Remaining: ${state.currentXp}`);
+
+                // Check for Rank Up
+                const currentRankIndex = state.ranks.indexOf(state.rank);
+                // Calculate the rank index corresponding to the *new* level
+                const targetRankIndex = Math.min(state.ranks.length - 1, Math.floor((state.level - 1) / state.levelsPerRank));
+
+                // If the target rank is higher than the current rank
+                if (targetRankIndex > currentRankIndex) {
+                    state.rank = state.ranks[targetRankIndex]; // Update rank
+                    rankChanged = true; // Mark that rank changed
+                    console.log(`Rank Up! Reached Rank ${state.rank}`);
+                }
+
+                // Get XP needed for the *next* level before potentially looping again
+                xpNeeded = getXpForNextLevel();
+            }
+
+            // If any level up occurred, show the modal
+            if (leveledUp) {
+                showLevelUpModal(rankChanged); // Pass whether rank actually changed
+            }
+        }
+
+         function checkStreakReset() {
+             // Only check if setup is complete and there's a last completion date
+             if (!state.setupComplete || !state.lastQuestCompletionDate) {
+                 return;
+             }
+
+             const today = new Date();
+             const todayStr = today.toISOString().split('T')[0];
+
+             const lastCompletion = new Date(state.lastQuestCompletionDate);
+             const yesterday = new Date(today); // Create a date object for yesterday
+             yesterday.setDate(today.getDate() - 1);
+             const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+             // If the last completion wasn't today or yesterday, reset the streak
+             if (state.lastQuestCompletionDate !== todayStr && state.lastQuestCompletionDate !== yesterdayStr) {
+                 console.log(`Streak reset. Last completion: ${state.lastQuestCompletionDate}, Today: ${todayStr}`);
+                 state.streak = 0;
+                 state.lastQuestCompletionDate = null; // Clear the date as the streak is broken
+                 updateUI(); // Update display immediately
+                 saveState(); // Save the reset streak
+             }
+         }
+
+
+        function updateStreak() {
+             // This function is now primarily called when a daily quest is completed
+             const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+             if (state.lastQuestCompletionDate !== today) {
+                 // Check if yesterday was the last completion date
+                 const yesterday = new Date();
+                 yesterday.setDate(yesterday.getDate() - 1);
+                 const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                 if (state.lastQuestCompletionDate === yesterdayStr) {
+                     state.streak++; // Increment streak if yesterday was last completion
+                 } else {
+                     state.streak = 1; // Start new streak if gap exists or first time
+                 }
+                 state.lastQuestCompletionDate = today; // Update last completion date to today
+                 console.log(`Streak updated. Current streak: ${state.streak}`);
+                 updateUI(); // Update streak display
+                 saveState();
+             }
+             // If completed another daily quest on the same day, streak doesn't change further today.
+        }
+
+
+        // --- Quest Management ---
+        function addQuest(type) {
+            const input = type === 'daily' ? newDailyQuestInput : newWeeklyQuestInput;
+            const text = input.value.trim();
+            if (!text) return; // Don't add empty quests
+
+            const newQuest = {
+                text: text,
+                completed: false,
+                id: Date.now() + Math.random() // More robust unique ID
+            };
+
+            if (type === 'daily') {
+                state.dailyQuests.push(newQuest);
+                renderDailyQuests();
+            } else {
+                state.weeklyQuests.push(newQuest);
+                renderWeeklyQuests();
+            }
+
+            input.value = ''; // Clear input
+            saveState();
+        }
+
+        function toggleQuestCompletion(type, id) {
+            const list = type === 'daily' ? state.dailyQuests : state.weeklyQuests;
+            const questIndex = list.findIndex(q => q.id === id); // Find index for easier update/removal
+            if (questIndex === -1) return; // Quest not found
+
+            const quest = list[questIndex];
+            quest.completed = !quest.completed; // Toggle completion status
+
+            // Update streak only when a *daily* quest is marked as *complete*
+            if (type === 'daily' && quest.completed) {
+                 updateStreak();
+            }
+
+             // Re-render the appropriate list
+             if (type === 'daily') {
+                renderDailyQuests();
+            } else {
+                renderWeeklyQuests();
+            }
+            saveState(); // Save the updated state
+        }
+
+         function deleteQuest(type, id) {
+             // Ask for confirmation before deleting
+             if (confirm('Are you sure you want to delete this quest?')) {
+                 if (type === 'daily') {
+                     state.dailyQuests = state.dailyQuests.filter(q => q.id !== id);
+                     renderDailyQuests(); // Re-render the list
+                 } else {
+                     state.weeklyQuests = state.weeklyQuests.filter(q => q.id !== id);
+                     renderWeeklyQuests(); // Re-render the list
+                 }
+                 saveState(); // Save the changes
+             }
+         }
+
+
+        function resetDailyQuestStatus() {
+             // Ask for confirmation
+             if (state.dailyQuests.length > 0 && confirm('Reset completion status for all daily quests?')) {
+                state.dailyQuests.forEach(q => q.completed = false); // Mark all as incomplete
+                renderDailyQuests(); // Update the UI
+                saveState(); // Save the changes
+            } else if (state.dailyQuests.length === 0) {
+                // Inform user if there are no quests to reset
+                // (Could use a more user-friendly notification)
+                console.log("No daily quests to reset.");
+            }
+        }
+
+
+        // --- UI Rendering ---
+        function updateUI() {
+            if (!state) return; // Exit if state is not loaded
+
+            // Update Rank Badge
+            rankDisplay.textContent = state.rank;
+            rankDisplay.className = `rank-badge rank-${state.rank}`; // Update class for styling
+             if (state.rank === 'S') {
+                rankDisplay.classList.add('shadow-sl-gold');
+            } else {
+                rankDisplay.classList.remove('shadow-sl-gold');
+            }
+
+            levelDisplay.textContent = state.level;
+            currentXpDisplay.textContent = state.currentXp;
+
+            const xpNeeded = getXpForNextLevel();
+            xpToNextLevelDisplay.textContent = xpNeeded;
+
+            // Calculate percentage, handle division by zero or negative XP needed (edge case)
+            const percentage = (xpNeeded > 0 && state.currentXp >= 0)
+                               ? Math.min(100, Math.floor((state.currentXp / xpNeeded) * 100))
+                               : (state.currentXp > 0 ? 100 : 0); // Show 100% if XP exceeds needed but level up hasn't processed? Or 0 if no XP.
+
+            xpPercentageDisplay.textContent = `${percentage}%`;
+            xpProgressBar.value = state.currentXp;
+            xpProgressBar.max = xpNeeded;
+
+            // Update Streak Display
+            streakCounterDisplay.textContent = `${state.streak} day${state.streak !== 1 ? 's' : ''}`;
+
+            // Ensure Lucide icons are processed after potential UI updates
+            lucide.createIcons();
+
+            console.log("UI Updated");
+        }
+
+        function renderQuests(type) {
+            const listElement = type === 'daily' ? dailyQuestList : weeklyQuestList;
+            const quests = type === 'daily' ? state.dailyQuests : state.weeklyQuests;
+
+            listElement.innerHTML = ''; // Clear existing list items
+
+            if (!quests || quests.length === 0) {
+                const placeholder = document.createElement('li');
+                placeholder.className = 'text-gray-500 italic text-sm px-2'; // Added padding
+                placeholder.textContent = `No ${type} quests added yet.`;
+                listElement.appendChild(placeholder);
+                return; // Exit if no quests
+            }
+
+            // Sort quests: incomplete first, then completed
+            quests.sort((a, b) => a.completed - b.completed);
+
+
+            quests.forEach(quest => {
+                const li = document.createElement('li');
+                // Add data-id for easier targeting
+                li.dataset.id = quest.id;
+                // Base classes + conditional completed class
+                li.className = `quest-item flex items-center justify-between p-2 rounded border border-transparent hover:border-sl-blue ${quest.completed ? 'completed' : ''}`;
+
+                // Quest Text Span
+                const textSpan = document.createElement('span');
+                textSpan.textContent = quest.text;
+                // Allow text to wrap and grow
+                textSpan.className = 'flex-grow mr-2 break-words'; // Added break-words
+
+                // Button Container
+                const buttonContainer = document.createElement('div');
+                // Prevent buttons from shrinking, add gap
+                buttonContainer.className = 'flex-shrink-0 flex items-center gap-1';
+
+                // Complete/Incomplete Button
+                const completeButton = document.createElement('button');
+                 // Dynamically set icon based on completion status
+                completeButton.innerHTML = `<i data-lucide="${quest.completed ? 'rotate-ccw' : 'check'}"></i>`;
+                 // Base classes + conditional styling
+                completeButton.className = `btn ${quest.completed ? 'btn-red' : 'btn-complete'} btn-sm p-1`; // Use smaller padding
+                completeButton.title = quest.completed ? 'Mark as Incomplete' : 'Mark as Complete';
+                // Attach click listener
+                completeButton.onclick = (e) => {
+                     e.stopPropagation(); // Prevent potential parent clicks
+                     toggleQuestCompletion(type, quest.id);
+                };
+
+                 // Delete Button
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = `<i data-lucide="trash-2"></i>`;
+                deleteButton.className = 'btn btn-red btn-sm p-1'; // Use smaller padding
+                deleteButton.title = 'Delete Quest';
+                 // Attach click listener
+                deleteButton.onclick = (e) => {
+                     e.stopPropagation(); // Prevent potential parent clicks
+                     deleteQuest(type, quest.id);
+                };
+
+
+                // Append buttons to container
+                buttonContainer.appendChild(completeButton);
+                buttonContainer.appendChild(deleteButton);
+
+                // Append text and buttons to list item
+                li.appendChild(textSpan);
+                li.appendChild(buttonContainer);
+
+                // Append list item to the list
+                listElement.appendChild(li);
+            });
+
+             // IMPORTANT: Re-render Lucide icons after adding dynamic content
+             lucide.createIcons();
+        }
+
+        function renderDailyQuests() {
+            renderQuests('daily');
+        }
+
+        function renderWeeklyQuests() {
+            renderQuests('weekly');
+        }
+
+        // --- Modals ---
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = "block";
+                // Ensure icons in the modal are rendered when opened
+                setTimeout(() => lucide.createIcons(), 0);
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        function showLevelUpModal(didRankUp) {
+            if(!state) return; // Guard against missing state
+            newLevelDisplay.textContent = `Level ${state.level}`;
+            if (didRankUp && state.rank) { // Check if rank exists
+                rankUpMessage.textContent = `Congratulations! You've reached Rank ${state.rank}!`;
+                rankUpMessage.classList.remove('hidden');
+            } else {
+                rankUpMessage.classList.add('hidden');
+            }
+            openModal('level-up-modal'); // Open modal handles icon rendering now
+        }
+
+        // --- Event Listeners ---
+        function addEventListeners() {
+            // Add XP Button
+            addXpButton.addEventListener('click', () => {
+                addXp(xpInput.value);
+                xpInput.value = ''; // Clear input after adding
+            });
+
+            // Add XP on Enter Key
+            xpInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addXp(xpInput.value);
+                    xpInput.value = '';
+                }
+            });
+
+            // Add Daily Quest Button
+            addDailyQuestButton.addEventListener('click', () => addQuest('daily'));
+            // Add Daily Quest on Enter Key
+            newDailyQuestInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addQuest('daily');
+            });
+
+            // Add Weekly Quest Button
+            addWeeklyQuestButton.addEventListener('click', () => addQuest('weekly'));
+             // Add Weekly Quest on Enter Key
+            newWeeklyQuestInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addQuest('weekly');
+            });
+
+            // Reset Daily Quests Button
+            resetDailyQuestsButton.addEventListener('click', resetDailyQuestStatus);
+            // Reset All Data Button
+            resetAllDataButton.addEventListener('click', resetAllData);
+
+
+             // Setup Modal - Start Button Listener
+            startSystemButton.addEventListener('click', () => {
+                const startRank = startRankSelect.value;
+                const firstQuestText = firstDailyQuestInput.value.trim();
+                const baseXp = parseInt(xpPerLevelInput.value, 10);
+
+                // Validate Base XP
+                if (isNaN(baseXp) || baseXp < 10) {
+                     alert("Base XP per level must be at least 10."); // Simple alert for now
+                     return;
+                }
+
+                // Update state with setup values
+                state.rank = startRank;
+                state.baseXpPerLevel = baseXp;
+                state.setupComplete = true; // Mark setup as complete
+
+                 // Calculate starting level based on rank more accurately
+                const rankIndex = state.ranks.indexOf(startRank);
+                state.level = rankIndex >= 0 ? (rankIndex * state.levelsPerRank) + 1 : 1; // Default to 1 if rank not found
+                state.currentXp = 0; // Start with 0 XP at the new level/rank
+                state.streak = 0; // Reset streak on setup
+                state.lastQuestCompletionDate = null; // Reset last completion date
+
+                // Clear existing quests and add the first one if provided
+                state.dailyQuests = [];
+                if (firstQuestText) {
+                    state.dailyQuests.push({ text: firstQuestText, completed: false, id: Date.now() });
+                }
+                state.weeklyQuests = []; // Start with no weekly quests
+
+                // Save the newly configured state
+                saveState();
+                // Close the setup modal
+                closeModal('setup-modal');
+                // Update the main UI
+                updateUI();
+                renderDailyQuests();
+                renderWeeklyQuests();
+                 console.log("Setup complete. Initial state:", state);
+            });
+
+        }
+
+        // --- Global Event Listener for Closing Modals by Clicking Outside ---
+        window.onclick = function(event) {
+            // Close any modal if the click is directly on the modal background
+            if (event.target.classList.contains('modal')) {
+                closeModal(event.target.id);
+            }
+        }
+
+        // --- Start the App ---
+        // Use DOMContentLoaded to ensure the HTML is parsed before running scripts
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
